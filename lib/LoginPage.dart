@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 class LoginPage extends StatefulWidget {
   LoginPage({Key key, this.title}) : super(key: key);
 
@@ -10,6 +13,27 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = new GoogleSignIn();
+
+
+  Future<FirebaseUser> _signIn() async {
+    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final FirebaseUser user = await _auth.signInWithCredential(credential);
+    final FirebaseUser currentUser = await _auth.currentUser();
+
+    print("User Name: ${user.displayName}");
+
+    return user;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,10 +72,13 @@ class _LoginPageState extends State<LoginPage> {
                   new Padding(padding: EdgeInsets.all(40.0)),
                   new RaisedButton(
                     padding: EdgeInsets.all(0),
+                    onPressed: () => _signIn().
+                        then((FirebaseUser user)=>print(user))
+                        .catchError((e)=>print(e)),
                     child: new RaisedButton(
                         padding: EdgeInsets.only(top: 3.0,bottom: 3.0,left: 3.0),
                         color: const Color(0xFF4285F4),
-                        onPressed: () {},
+
                         child: new Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[

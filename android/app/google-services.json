@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "430840058563",
+    "firebase_url": "https://jj-191224.firebaseio.com",
+    "project_id": "jj-191224",
+    "storage_bucket": "jj-191224.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430840058563:android:a4b434f31584ddaa4f0876",
+        "android_client_info": {
+          "package_name": "com.bitrixlk.journeymate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "430840058563-ohmjens4gfiq6p4abk0e030p7sbhqqbq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bitrixlk.journeymate",
+            "certificate_hash": "a47b2f9f40fb8a5f2ac1c3c29d7d7cc0e401c3c8"
+          }
+        },
+        {
+          "client_id": "430840058563-fugj90ngbsqud9ir1avqsuadj23j6bt5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApIHj2tdtrE7F0eJgH58t7CKbUWs4Pph4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "430840058563-fugj90ngbsqud9ir1avqsuadj23j6bt5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
