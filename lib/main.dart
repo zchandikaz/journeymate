@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'support.dart';
-
-
 import 'LoginPage.dart';
 
 
@@ -17,7 +15,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Roboto'
       ),
-      home: Pages.login,
+      home: Pages.splash,
     );
   }
 }

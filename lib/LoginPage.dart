@@ -2,30 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'support.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-
 class LoginPage extends StatelessWidget {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = new GoogleSignIn();
-
-
-  Future<FirebaseUser> _signIn() async {
-    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    final FirebaseUser user = await _auth.signInWithCredential(credential);
-    final FirebaseUser currentUser = await _auth.currentUser();
-
-    print("User Name: ${user.displayName}");
-
-    return user;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,16 +42,9 @@ class LoginPage extends StatelessWidget {
                 new Padding(padding: EdgeInsets.all(40.0)),
                 new RaisedButton(
                   padding: EdgeInsets.all(0),
-                  onPressed: () => _signIn().
-                  then((FirebaseUser user){
-                      print(user);
-
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => Pages.newsFeed),
-                            (Route<dynamic> route) => false,
-                      );
-
+                  onPressed: () => SignInSupport.signIn().
+                  then((var user){
+                      CA.NavigateNoBack(context, Pages.newsFeed);
                     })
                     .catchError((e)=>print(e)),
                   child: new RaisedButton(
@@ -107,6 +77,35 @@ class LoginPage extends StatelessWidget {
             ),
           ),
         )
+    );
+  }
+}
+
+
+class SplashPage extends StatefulWidget {
+  @override
+  _SplashPageState createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    SignInSupport.getCurrentUser().then((var user){
+      CA.NavigateNoBack(context, user==null?Pages.login:Pages.newsFeed);
+    });
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: new Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/back1.jpg"),
+              fit: BoxFit.cover,
+            ),
+          )
+      ),
     );
   }
 }
