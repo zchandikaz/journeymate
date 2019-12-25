@@ -41,37 +41,35 @@ class LoginPage extends StatelessWidget {
                 ),
                 new Padding(padding: EdgeInsets.all(40.0)),
                 new RaisedButton(
-                  padding: EdgeInsets.all(0),
                   onPressed: () => SignInSupport.signIn().
                   then((var user){
                       CA.NavigateNoBack(context, Pages.newsFeed);
                     })
                     .catchError((e)=>print(e)),
-                  child: new RaisedButton(
-                      padding: EdgeInsets.only(top: 3.0,bottom: 3.0,left: 3.0),
-                      color: const Color(0xFF4285F4),
 
-                      child: new Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          new Container(
-                            padding: EdgeInsets.all(7),
-                            color: Colors.white,
-                            child: new Image.asset(
-                              'assets/images/google.png',
-                              height: 35.0,
-                            ),
-                          ),
-                          new Container(
-                              padding: EdgeInsets.only(left: 20.0,right: 23.0),
-                              child: new Text("Sign in with Google",style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                              )
-                          ),
-                        ],
-                      )
-                  ),
+                  padding: EdgeInsets.only(top: 3.0,bottom: 3.0,left: 3.0),
+                  color: const Color(0xFF4285F4),
+
+                  child: new Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      new Container(
+                        padding: EdgeInsets.all(7),
+                        color: Colors.white,
+                        child: new Image.asset(
+                          'assets/images/google.png',
+                          height: 35.0,
+                        ),
+                      ),
+                      new Container(
+                          padding: EdgeInsets.only(left: 20.0,right: 23.0),
+                          child: new Text("Sign in with Google",style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                          )
+                      ),
+                    ],
+                  )
                 )
               ],
             ),

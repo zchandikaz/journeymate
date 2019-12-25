@@ -79,26 +79,23 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                         ],
                       ),
                       new RaisedButton(
-                        padding: EdgeInsets.all(0),
                         onPressed: () => SignInSupport.signOut().
                         then((var r){ CA.NavigateNoBack(context, Pages.login); })
                             .catchError((e)=>print(e)),
-                        child: new RaisedButton(
-                            padding: EdgeInsets.only(left: 3.0, top: 17, bottom: 17),
-                            color: CS.bgColor1,
-                            child: new Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                new Container(
-                                    padding: EdgeInsets.only(left: 30.0,right: 30.0),
-                                    child: new Text("Sign Out",style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                    )
-                                ),
-                              ],
-                            )
-                        ),
+                        padding: EdgeInsets.only(left: 3.0, top: 17, bottom: 17),
+                        color: CS.bgColor1,
+                        child: new Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            new Container(
+                                padding: EdgeInsets.only(left: 30.0,right: 30.0),
+                                child: new Text("Sign Out",style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                                )
+                            ),
+                          ],
+                        )
                       )
                     ],
                   ),
@@ -116,7 +113,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               print('POST');
             }),
             IconButton(icon: ImageIcon(AssetImage('assets/images/record_journey.png'), size:  CA.getScreenWidth(context)*0.1, color: CS.fgColor1), onPressed: (){
-              print('JOURNEY');
+              CA.Navigate(context, Pages.startRecordJourney);
             },),
             //IconButton(icon: Icon(Icons.border_color, size:  CA.getScreenWidth(context)*0.1, color: CS.fgColor1), onPressed: () { print('Pressed!'); }),
           ]

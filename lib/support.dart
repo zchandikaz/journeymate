@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'LoginPage.dart';
 import 'NewsFeedPage.dart';
+import 'RecordJourneyPage.dart';
 
 // Common Settings
 class CS{
@@ -17,6 +18,8 @@ class Pages {
   static LoginPage get login => LoginPage();
   static NewsFeedPage get newsFeed => NewsFeedPage();
   static SplashPage get splash => SplashPage();
+  static StartRecordJourneyPage get startRecordJourney => StartRecordJourneyPage();
+  static RecordJourneyPage get recordJourney => RecordJourneyPage();
 
 }
 
@@ -29,6 +32,15 @@ class CA{
           (Route<dynamic> route) => false,
     );
   }
+  static void Navigate(context, page){
+    Navigator
+        .of(context)
+        .push(MaterialPageRoute<Null>(builder:(BuildContext context){
+          return page;
+        })
+    );
+  }
+
   static double getScreenWidth(var context) => MediaQuery.of(context).size.width;
   static double getScreenHeight(var context) => MediaQuery.of(context).size.height;
 
