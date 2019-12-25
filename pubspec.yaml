@@ -21,7 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   firebase_auth:
   google_sign_in:
-  splashscreen:
+  fab_circular_menu:
 
 dev_dependencies:
   flutter_test:
@@ -43,6 +43,8 @@ flutter:
     - assets/images/logo.png
     - assets/images/google.png
     - assets/images/back1.jpg
+    - assets/images/publish_post.png
+    - assets/images/record_journey.png
 
   fonts:
     - family: Roboto
