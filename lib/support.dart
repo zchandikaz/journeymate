@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'LoginPage.dart';
 import 'NewsFeedPage.dart';
@@ -9,7 +10,7 @@ import 'RecordJourneyPage.dart';
 
 // Common Settings
 class CS{
-  static final String title = 'Journey Mate';
+  static const String title = 'Journey Mate';
   static Color bgColor1 = const Color(0xff4285ff);
   static Color fgColor1 = const Color(0xffffffff);
 }
@@ -44,6 +45,37 @@ class CA{
   static double getScreenWidth(var context) => MediaQuery.of(context).size.width;
   static double getScreenHeight(var context) => MediaQuery.of(context).size.height;
 
+  static Future<Position> getCurLocation() async {
+    return Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+  }
+
+  static void alert(var context, var content, {var title = CS.title}) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(content),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static double convertRange(double value, double fromMin, double fromMax, double toMin, double toMax){
+    return (fromMin==fromMax)?((toMin+toMax)/2):((value-fromMin)/(fromMax-fromMin).abs()*(toMax-toMin).abs() + toMin);
+  }
 }
 
 class SignInSupport{

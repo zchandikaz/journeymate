@@ -22,6 +22,8 @@ dependencies:
   firebase_auth:
   google_sign_in:
   fab_circular_menu:
+  geolocator: ^5.1.5
+  zoom_widget: ^0.1.3
 
 dev_dependencies:
   flutter_test:
