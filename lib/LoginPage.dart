@@ -43,7 +43,7 @@ class LoginPage extends StatelessWidget {
                 new RaisedButton(
                   onPressed: () => SignInSupport.signIn().
                   then((var user){
-                      CA.NavigateNoBack(context, Pages.newsFeed);
+                      CA.navigateWithoutBack(context, Pages.newsFeed);
                     })
                     .catchError((e)=>print(e)),
 
@@ -90,7 +90,7 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     SignInSupport.getCurrentUser().then((var user){
-      CA.NavigateNoBack(context, user==null?Pages.login:Pages.newsFeed);
+      CA.navigateWithoutBack(context, user==null?Pages.login:Pages.newsFeed);
     });
   }
   @override

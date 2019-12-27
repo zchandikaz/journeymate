@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'LoginPage.dart';
 import 'NewsFeedPage.dart';
@@ -21,26 +23,28 @@ class Pages {
   static SplashPage get splash => SplashPage();
   static StartRecordJourneyPage get startRecordJourney => StartRecordJourneyPage();
   static RecordJourneyPage get recordJourney => RecordJourneyPage();
-
+  static AddMilestonePage get addMilestone => AddMilestonePage();
+  static AddMilestonePage editMilestone(title, note) => AddMilestonePage.edit(title, note);
 }
 
 // Common Actions
 class CA{
-  static void NavigateNoBack(context, page){
+  static void navigateWithoutBack(context, page){
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => page),
           (Route<dynamic> route) => false,
     );
   }
-  static void Navigate(context, page){
-    Navigator
+  static Future navigate(context, page) async {
+    return await Navigator
         .of(context)
-        .push(MaterialPageRoute<Null>(builder:(BuildContext context){
+        .push(MaterialPageRoute<dynamic>(builder:(BuildContext context){
           return page;
         })
     );
   }
+  static final navigateBack = Navigator.pop;
 
   static double getScreenWidth(var context) => MediaQuery.of(context).size.width;
   static double getScreenHeight(var context) => MediaQuery.of(context).size.height;
@@ -103,8 +107,11 @@ class SignInSupport{
     return user;
   }
 
-  static Future signOut()  async{
+  static Future signOut(context)  async{
     await FirebaseAuth.instance.signOut();
+    GoogleSignIn _googleSignIn = GoogleSignIn();
+    await _googleSignIn.signOut();
+    CA.navigateWithoutBack(context, Pages.login);
   }
 
   static Future<FirebaseUser> getCurrentUser () async{
