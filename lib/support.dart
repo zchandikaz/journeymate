@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'LoginPage.dart';
 import 'NewsFeedPage.dart';
@@ -22,7 +21,8 @@ class Pages {
   static NewsFeedPage get newsFeed => NewsFeedPage();
   static SplashPage get splash => SplashPage();
   static StartRecordJourneyPage get startRecordJourney => StartRecordJourneyPage();
-  static RecordJourneyPage get recordJourney => RecordJourneyPage();
+  static RecordJourneyPage recordJourney(name) => RecordJourneyPage.begin(name);
+  static RecordJourneyPage continueRecordJourney() => RecordJourneyPage.continueJourney();
   static AddMilestonePage get addMilestone => AddMilestonePage();
   static AddMilestonePage editMilestone(title, note) => AddMilestonePage.edit(title, note);
 }
@@ -30,18 +30,19 @@ class Pages {
 // Common Actions
 class CA{
   static void navigateWithoutBack(context, page){
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-          (Route<dynamic> route) => false,
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => page
+      ),
+      (Route<dynamic> route) => false,
     );
   }
   static Future navigate(context, page) async {
     return await Navigator
         .of(context)
-        .push(MaterialPageRoute<dynamic>(builder:(BuildContext context){
-          return page;
-        })
+        .push(
+          MaterialPageRoute<dynamic>(builder:(BuildContext context)=>page
+        )
     );
   }
   static final navigateBack = Navigator.pop;
@@ -62,7 +63,7 @@ class CA{
         // return object of type Dialog
         return AlertDialog(
           title: new Text(title),
-          content: new Text(content),
+          content: new Text(content, style: new TextStyle(fontSize: 20.0)),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             new FlatButton(
@@ -74,6 +75,34 @@ class CA{
           ],
         );
       },
+    );
+
+  }
+
+  static Future readStringSP(key, {defval=""}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(key) ?? defval;
+    return value;
+  }
+
+  static saveStringSP(key, val) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(key, val);
+  }
+
+
+  static Future confirm(var context, var content, {var title = CS.title, var btnTexts = const ['Yes', 'No']}) async {
+    return await showDialog(
+        context: context,
+        builder: (_) => new AlertDialog(
+          title: new Text(title),
+          content: new Text(content,
+            style: new TextStyle(fontSize: 20.0),),
+          actions: <Widget>[
+            new FlatButton(onPressed: () {Navigator.of(context).pop('yes');}, child: new Text(btnTexts[0])),
+            new FlatButton(onPressed: () {Navigator.of(context).pop('no');}, child: new Text(btnTexts[1])),
+          ],
+        )
     );
   }
 
@@ -97,14 +126,12 @@ class SignInSupport{
       idToken: googleAuth.idToken,
     );
 
-    final FirebaseUser user = await _auth.signInWithCredential(credential);
+    final AuthResult authResult = await _auth.signInWithCredential(credential);
     currentUser = await _auth.currentUser();
 
+    print("User Name: ${currentUser.displayName}");
 
-
-    print("User Name: ${user.displayName}");
-
-    return user;
+    return currentUser;
   }
 
   static Future signOut(context)  async{

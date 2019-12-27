@@ -3,8 +3,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@android:color/white" />
 
-<!--     You can insert your own image assets here -->
-     <item>
+    <item>
         <bitmap
             android:gravity="fill"
             android:src="@drawable/back1" />

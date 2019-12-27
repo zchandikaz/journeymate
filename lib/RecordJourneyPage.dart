@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:zoom_widget/zoom_widget.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'support.dart';
 
 class StartRecordJourneyPage extends StatelessWidget {
+  TextEditingController txtName = new TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,9 +31,10 @@ class StartRecordJourneyPage extends StatelessWidget {
                   fontSize: 23,
                 ),
                 textAlign: TextAlign.center,
+                controller: txtName,
               ),
               new RaisedButton(
-                  onPressed: () => CA.navigateWithoutBack(context, Pages.recordJourney),
+                  onPressed: () => CA.navigateWithoutBack(context, Pages.recordJourney(txtName.text)),
                   padding: EdgeInsets.only(left: 3.0, top: 17, bottom: 17),
                   color: CS.bgColor1,
                   child: new Row(
@@ -129,15 +134,37 @@ class AddMilestonePage extends StatelessWidget {
   }
 }
 
-// user defined function
-
 class RecordJourneyPage extends StatefulWidget {
+  String name;
+  bool loadFromJson = false;
+
+  RecordJourneyPage();
+
+  RecordJourneyPage.begin(this.name);
+
+  RecordJourneyPage.continueJourney(){
+    this.name = "";
+    this.loadFromJson = true;
+  }
+
   @override
-  _RecordJourneyPageState createState() => _RecordJourneyPageState();
+  _RecordJourneyPageState createState() => _RecordJourneyPageState(name, loadFromJson);
 }
 
 class _RecordJourneyPageState extends State<RecordJourneyPage> {
   JourneyMap journeyMap;
+  String name;
+  bool loadFromJson = false;
+
+  _RecordJourneyPageState(name, loadFromJson){
+    this.name = name;
+    this.loadFromJson = loadFromJson;
+    if(loadFromJson){
+      CA.readStringSP('current_recording_journey').then((json){
+        journeyMap = JourneyMap.fromJson(context, json);
+      });
+    }
+  }
 
   void _select(String choice) {
     if(choice=='Cancel') CA.navigateWithoutBack(context, Pages.newsFeed);
@@ -151,6 +178,7 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
             if(v!=null)
               setState((){
                 journeyMap.add(location.latitude, location.longitude, v['title'], new MilestoneNote(v['note']));
+                saveCurrentJourney();
               });
           });
         });
@@ -160,9 +188,14 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
     });
   }
 
+  void saveCurrentJourney(){
+    String json = jsonEncode(journeyMap);
+    CA.saveStringSP('current_recording_journey', json);
+  }
+
   @override
   Widget build(BuildContext context) {
-    journeyMap ??= new JourneyMap(context);
+    journeyMap ??= new JourneyMap(context, name);
 
     int mCount = 0;
     return Scaffold(
@@ -170,10 +203,28 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
       appBar: AppBar(
         title: Text(CS.title),
           actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.save),
+              onPressed: () {
+
+              },
+            ),
+            // action button
+            IconButton(
+              icon: Icon(Icons.cancel),
+              onPressed: () {
+                CA.confirm(context, 'Do you want to cancel the journey ?').then((v){
+                  if(v=='yes')
+                    CA.navigateWithoutBack(context, Pages.newsFeed);
+                    CA.saveStringSP('current_recording_journey', "");
+                });
+              },
+            ),
+
             PopupMenuButton<String>(
               onSelected: _select,
               itemBuilder: (BuildContext context) {
-                return ['Cancel'].map((String choice) {
+                return ['Settings'].map((String choice) {
                   return PopupMenuItem<String>(
                     value: choice,
                     child: Text(choice),
@@ -211,6 +262,7 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
                           setState((){
                             journeyMap.milestones[i].title = v['title'];
                             journeyMap.milestones[i].note.text = v['note'];
+                            saveCurrentJourney();
                           });
                       });
                     }),
@@ -249,16 +301,24 @@ class MilestoneListTile{
   GestureTapCallback getI(Function f){
     return ()=>f(i);
   }
+
 }
 
+@JsonSerializable()
 class MilestoneNote{
   String text = "";
 
   MilestoneNote(this.text);
 // should be contained audio, vedio or etc.
 
+  factory MilestoneNote.fromJson(Map<String, dynamic> json) => new MilestoneNote(json['text']);
+
+  Map<String, dynamic> toJson()=><String, dynamic>{
+    'text': this.text,
+  };
 }
 
+@JsonSerializable()
 class Milestone{
   double lat;
   double lng;
@@ -266,20 +326,28 @@ class Milestone{
   MilestoneNote note;
 
   Milestone(this.lat, this.lng, this.title, this.note);
+
+  factory Milestone.fromJson(Map<String, dynamic> json) => new Milestone(json['lat'], json['lng'], json['title'], json['note']);
+
+  Map<String, dynamic> toJson()=><String, dynamic>{
+    'lat': this.lat,
+    'lng': this.lng,
+    'title': this.title,
+    'note': this.note
+  };
 }
 
-class Coord{
-  double left;
-  double top;
-
-  Coord(this.left, this.top);
-}
-
+@JsonSerializable()
 class JourneyMap{
   var context;
-  List<Milestone> milestones = new List();
+  String name;
+  List<Milestone> milestones;
 
-  JourneyMap(this.context);
+  JourneyMap(context, name, {milestones}){
+    this.context = context;
+    this.milestones ??= new List();
+    this.name = name;
+  }
 
   add(double lat, double lng, String title, MilestoneNote note){
     milestones.add(new Milestone(lat, lng, title, note));
@@ -370,6 +438,20 @@ class JourneyMap{
       children: milestoneFlags
     );
   }
+
+  factory JourneyMap.fromJson(context, Map<String, dynamic> json) => new JourneyMap(context, json['name'], milestones: json['milestones']);
+
+  Map<String, dynamic> toJson()=><String, dynamic>{
+    'milestones': this.milestones,
+    'name': this.name
+  };
+}
+
+class Coord{
+  double left;
+  double top;
+
+  Coord(this.left, this.top);
 }
 
 class Line extends CustomPainter {

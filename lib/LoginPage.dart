@@ -90,7 +90,13 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     SignInSupport.getCurrentUser().then((var user){
-      CA.navigateWithoutBack(context, user==null?Pages.login:Pages.newsFeed);
+      if(user==null)
+        CA.navigateWithoutBack(context, Pages.login);
+      else
+        CA.readStringSP('current_recording_journey').then((val){
+          CA.navigateWithoutBack(context, val==""?Pages.login:Pages.continueRecordJourney);
+        });
+
     });
   }
   @override
