@@ -22,13 +22,17 @@ class Pages {
   static SplashPage get splash => SplashPage();
   static StartRecordJourneyPage get startRecordJourney => StartRecordJourneyPage();
   static RecordJourneyPage recordJourney(name) => RecordJourneyPage.begin(name);
-  static RecordJourneyPage continueRecordJourney() => RecordJourneyPage.continueJourney();
+  //static RecordJourneyPage continueRecordJourney() => RecordJourneyPage.continueJourney();
   static AddMilestonePage get addMilestone => AddMilestonePage();
   static AddMilestonePage editMilestone(title, note) => AddMilestonePage.edit(title, note);
 }
 
 // Common Actions
 class CA{
+  static void log(val){
+    print('###$val###');
+  }
+
   static void navigateWithoutBack(context, page){
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
@@ -126,7 +130,7 @@ class SignInSupport{
       idToken: googleAuth.idToken,
     );
 
-    final AuthResult authResult = await _auth.signInWithCredential(credential);
+    await _auth.signInWithCredential(credential);
     currentUser = await _auth.currentUser();
 
     print("User Name: ${currentUser.displayName}");

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:journeymate/RecordJourneyPage.dart';
 
 import 'support.dart';
 
@@ -94,7 +95,13 @@ class _SplashPageState extends State<SplashPage> {
         CA.navigateWithoutBack(context, Pages.login);
       else
         CA.readStringSP('current_recording_journey').then((val){
-          CA.navigateWithoutBack(context, val==""?Pages.login:Pages.continueRecordJourney);
+          if(val=="")
+            CA.navigateWithoutBack(context, Pages.newsFeed);
+          else{
+            RecordJourneyPage journeyPage = Pages.recordJourney("");
+            journeyPage.loadFromJson = true;
+            CA.navigateWithoutBack(context, journeyPage);
+          }
         });
 
     });

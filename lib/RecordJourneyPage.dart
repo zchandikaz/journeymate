@@ -8,7 +8,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'support.dart';
 
 class StartRecordJourneyPage extends StatelessWidget {
-  TextEditingController txtName = new TextEditingController();
+  final TextEditingController txtName = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -141,11 +141,11 @@ class RecordJourneyPage extends StatefulWidget {
   RecordJourneyPage();
 
   RecordJourneyPage.begin(this.name);
-
-  RecordJourneyPage.continueJourney(){
-    this.name = "";
-    this.loadFromJson = true;
-  }
+//
+//  RecordJourneyPage.continueJourney(){
+//    this.name = "";
+//    this.loadFromJson = true;
+//  }
 
   @override
   _RecordJourneyPageState createState() => _RecordJourneyPageState(name, loadFromJson);
@@ -156,14 +156,18 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
   String name;
   bool loadFromJson = false;
 
+  _restoreFromSP() async {
+    var json = await CA.readStringSP('current_recording_journey');
+    setState(() {
+      journeyMap = JourneyMap.fromJson(context, jsonDecode(json));
+    });
+
+  }
+
   _RecordJourneyPageState(name, loadFromJson){
     this.name = name;
     this.loadFromJson = loadFromJson;
-    if(loadFromJson){
-      CA.readStringSP('current_recording_journey').then((json){
-        journeyMap = JourneyMap.fromJson(context, json);
-      });
-    }
+    if(loadFromJson) _restoreFromSP();
   }
 
   void _select(String choice) {
@@ -327,13 +331,13 @@ class Milestone{
 
   Milestone(this.lat, this.lng, this.title, this.note);
 
-  factory Milestone.fromJson(Map<String, dynamic> json) => new Milestone(json['lat'], json['lng'], json['title'], json['note']);
+  factory Milestone.fromJson(Map<String, dynamic> json) => new Milestone(json['lat'], json['lng'], json['title'], MilestoneNote.fromJson(json['note']));
 
   Map<String, dynamic> toJson()=><String, dynamic>{
     'lat': this.lat,
     'lng': this.lng,
     'title': this.title,
-    'note': this.note
+    'note': this.note.toJson()
   };
 }
 
@@ -345,7 +349,7 @@ class JourneyMap{
 
   JourneyMap(context, name, {milestones}){
     this.context = context;
-    this.milestones ??= new List();
+    this.milestones = milestones??new List();
     this.name = name;
   }
 
@@ -373,7 +377,7 @@ class JourneyMap{
     double minLng = lngs.reduce(minF);
     double maxLng = lngs.reduce(maxF);
 
-    print('minLat:$minLat maxLat:$maxLat minLng:$minLng maxLng:$maxLng');
+//    CA.log('minLat:$minLat maxLat:$maxLat minLng:$minLng maxLng:$maxLng');
 
 
     List<double> xs = new List();
@@ -382,8 +386,8 @@ class JourneyMap{
     List<Coord> coords = milestones.map((Milestone milestone){
       double left, top;
 
-      print('Lng:${milestone.lng} Lat:${milestone.lat} screenWidth:$screenWidth');
-      print('left:$left top:$top');
+//      CA.log(('Lng:${milestone.lng} Lat:${milestone.lat} screenWidth:$screenWidth');
+//      CA.log(('left:$left top:$top');
 
       if((minLng-maxLng).abs()>(minLat-maxLat).abs()){
         left = (minLng==maxLng)?0:((milestone.lng-minLng)/(maxLng-minLng).abs()*screenWidth);
@@ -439,7 +443,12 @@ class JourneyMap{
     );
   }
 
-  factory JourneyMap.fromJson(context, Map<String, dynamic> json) => new JourneyMap(context, json['name'], milestones: json['milestones']);
+  factory JourneyMap.fromJson(context, Map<String, dynamic> json){
+    String name = json['name'];
+    List m = json['milestones'];
+    List<Milestone> milestones = m.map((v)=>Milestone.fromJson(v)).toList();
+    return JourneyMap(context, name, milestones: milestones);
+  }
 
   Map<String, dynamic> toJson()=><String, dynamic>{
     'milestones': this.milestones,
