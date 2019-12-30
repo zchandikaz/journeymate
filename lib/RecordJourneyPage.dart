@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:zoom_widget/zoom_widget.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import 'support.dart';
+import 'classes.dart';
 
 class StartRecordJourneyPage extends StatelessWidget {
   final TextEditingController txtName = new TextEditingController();
@@ -105,7 +105,7 @@ class AddMilestonePage extends StatelessWidget {
               ),
               new RaisedButton(
                   onPressed: (){
-                    if(txtTitle.text.length+txtNote.text.length==0)
+                    if(txtTitle.text.length==0)
                       CA.alert(context, "Please fill the fields.");
                     else
                       CA.navigateBack(context, {"title":txtTitle.text, "note":txtNote.text});
@@ -159,7 +159,7 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
   _restoreFromSP() async {
     var json = await CA.readStringSP('current_recording_journey');
     setState(() {
-      journeyMap = JourneyMap.fromJson(context, jsonDecode(json));
+      journeyMap = JourneyMap.fromJson(jsonDecode(json)).of(context);
     });
 
   }
@@ -182,7 +182,7 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
             if(v!=null)
               setState((){
                 journeyMap.add(location.latitude, location.longitude, v['title'], new MilestoneNote(v['note']));
-                saveCurrentJourney();
+                saveCurrentJourneySP();
               });
           });
         });
@@ -192,14 +192,31 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
     });
   }
 
-  void saveCurrentJourney(){
+  void saveCurrentJourneySP(){
     String json = jsonEncode(journeyMap);
     CA.saveStringSP('current_recording_journey', json);
   }
 
+  void _cancel() {
+    if(journeyMap.localFile==null) {
+      CA.confirm(context, 'Do you want to cancel the journey without saving ?').then((v) {
+        if (v == 'yes')
+          CA.navigateWithoutBack(context, Pages.newsFeed);
+        CA.saveStringSP('current_recording_journey', "");
+      });
+    } else {
+      journeyMap.saveToLocalFile();
+      CA.confirm(context, 'Do you want to exit from recording the journey ?').then((v) {
+        if (v == 'yes')
+          CA.navigateWithoutBack(context, Pages.newsFeed);
+        CA.saveStringSP('current_recording_journey', "");
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    journeyMap ??= new JourneyMap(context, name);
+    journeyMap ??= new JourneyMap(name).of(context);
 
     int mCount = 0;
     return Scaffold(
@@ -210,19 +227,14 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
             IconButton(
               icon: Icon(Icons.save),
               onPressed: () {
-
+                journeyMap.saveToLocalFile();
+                CA.alert(context, "Journey map saved.");
               },
             ),
             // action button
             IconButton(
               icon: Icon(Icons.cancel),
-              onPressed: () {
-                CA.confirm(context, 'Do you want to cancel the journey ?').then((v){
-                  if(v=='yes')
-                    CA.navigateWithoutBack(context, Pages.newsFeed);
-                    CA.saveStringSP('current_recording_journey', "");
-                });
-              },
+              onPressed: _cancel,
             ),
 
             PopupMenuButton<String>(
@@ -264,9 +276,10 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
                       CA.navigate(context, Pages.editMilestone(journeyMap.milestones[i].title, journeyMap.milestones[i].note.text)).then((v){
                         if(v!=null)
                           setState((){
-                            journeyMap.milestones[i].title = v['title'];
-                            journeyMap.milestones[i].note.text = v['note'];
-                            saveCurrentJourney();
+                            journeyMap
+                              ..milestones[i].title = v['title']
+                              ..milestones[i].note.text = v['note'];
+                            saveCurrentJourneySP();
                           });
                       });
                     }),
@@ -297,194 +310,3 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
   }
 }
 
-class MilestoneListTile{
-  int i;
-
-  MilestoneListTile(this.i);
-
-  GestureTapCallback getI(Function f){
-    return ()=>f(i);
-  }
-
-}
-
-@JsonSerializable()
-class MilestoneNote{
-  String text = "";
-
-  MilestoneNote(this.text);
-// should be contained audio, vedio or etc.
-
-  factory MilestoneNote.fromJson(Map<String, dynamic> json) => new MilestoneNote(json['text']);
-
-  Map<String, dynamic> toJson()=><String, dynamic>{
-    'text': this.text,
-  };
-}
-
-@JsonSerializable()
-class Milestone{
-  double lat;
-  double lng;
-  String title = "";
-  MilestoneNote note;
-
-  Milestone(this.lat, this.lng, this.title, this.note);
-
-  factory Milestone.fromJson(Map<String, dynamic> json) => new Milestone(json['lat'], json['lng'], json['title'], MilestoneNote.fromJson(json['note']));
-
-  Map<String, dynamic> toJson()=><String, dynamic>{
-    'lat': this.lat,
-    'lng': this.lng,
-    'title': this.title,
-    'note': this.note.toJson()
-  };
-}
-
-@JsonSerializable()
-class JourneyMap{
-  var context;
-  String name;
-  List<Milestone> milestones;
-
-  JourneyMap(context, name, {milestones}){
-    this.context = context;
-    this.milestones = milestones??new List();
-    this.name = name;
-  }
-
-  add(double lat, double lng, String title, MilestoneNote note){
-    milestones.add(new Milestone(lat, lng, title, note));
-  }
-
-  getWidget(){
-    if(milestones.isEmpty) return Stack(children:[]);
-
-    final double milestoneSize = 40;
-    final double mapPadding = 20;
-    final double screenSize = 1000;
-    double screenWidth = screenSize - milestoneSize - 2*mapPadding;//CA.getScreenWidth(context)-milestoneSize;
-
-    List<double> lats = milestones.map((Milestone m)=>m.lat).toList();
-    List<double> lngs = milestones.map((Milestone m)=>m.lng).toList();
-
-    var minF = (double curr, double next) => curr < next? curr: next;
-    var maxF = (double curr, double next) => curr > next? curr: next;
-
-    double minLat = lats.reduce(minF);
-    double maxLat = lats.reduce(maxF);
-
-    double minLng = lngs.reduce(minF);
-    double maxLng = lngs.reduce(maxF);
-
-//    CA.log('minLat:$minLat maxLat:$maxLat minLng:$minLng maxLng:$maxLng');
-
-
-    List<double> xs = new List();
-    List<double> ys = new List();
-
-    List<Coord> coords = milestones.map((Milestone milestone){
-      double left, top;
-
-//      CA.log(('Lng:${milestone.lng} Lat:${milestone.lat} screenWidth:$screenWidth');
-//      CA.log(('left:$left top:$top');
-
-      if((minLng-maxLng).abs()>(minLat-maxLat).abs()){
-        left = (minLng==maxLng)?0:((milestone.lng-minLng)/(maxLng-minLng).abs()*screenWidth);
-        top = (minLat==maxLat)?0:((milestone.lat-minLat)/(maxLng-minLng).abs()*screenWidth);
-      }else{
-        top = (minLat==maxLat)?0:((milestone.lat-minLat)/(maxLat-minLat).abs()*screenWidth);
-        left = (minLng==maxLng)?0:((milestone.lng-minLng)/(maxLat-minLat).abs()*screenWidth);
-      }
-
-      xs.add(left);
-      ys.add(top);
-
-      return Coord(left, top);
-    }).toList();
-
-    double minX = xs.reduce(minF);
-    double maxX = xs.reduce(maxF);
-
-    double minY = ys.reduce(minF);
-    double maxY = ys.reduce(maxF);
-
-    double centerOffsetX = (screenWidth - (maxX-minX))/2;
-    double centerOffsetY = (screenWidth - (maxY-minY))/2;
-
-    int i = 0;
-
-    List<Positioned> milestoneFlags = coords.map((Coord coord){
-      return Positioned(
-        left: mapPadding + coord.left + centerOffsetX,
-        top: mapPadding + coord.top + centerOffsetY,
-        width: milestoneSize,
-        height: milestoneSize,
-        child: new InkResponse(
-          child: new Container(
-            decoration: new BoxDecoration(
-              border: Border.all(color: Colors.white, width: 5),
-              shape: BoxShape.circle,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text((++i).toString(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),)
-              ],
-            ),
-          ),
-        ),
-      );
-    }).toList();
-
-    return Stack(
-      children: milestoneFlags
-    );
-  }
-
-  factory JourneyMap.fromJson(context, Map<String, dynamic> json){
-    String name = json['name'];
-    List m = json['milestones'];
-    List<Milestone> milestones = m.map((v)=>Milestone.fromJson(v)).toList();
-    return JourneyMap(context, name, milestones: milestones);
-  }
-
-  Map<String, dynamic> toJson()=><String, dynamic>{
-    'milestones': this.milestones,
-    'name': this.name
-  };
-}
-
-class Coord{
-  double left;
-  double top;
-
-  Coord(this.left, this.top);
-}
-
-class Line extends CustomPainter {
-  var p1, p2;
-
-  Line(this.p1, this.p2);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 4;
-    canvas.drawLine(p1, p2, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter old) {
-    return false;
-  }
-
-  static CustomPaint draw(context, p1, p2){
-    return CustomPaint(
-      size: Size(CA.getScreenWidth(context), CA.getScreenHeight(context)),
-      painter: Line(p1, p2),
-    );
-  }
-}

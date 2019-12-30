@@ -80,7 +80,6 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-
 class SplashPage extends StatefulWidget {
   @override
   _SplashPageState createState() => _SplashPageState();

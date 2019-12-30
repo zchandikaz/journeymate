@@ -9,8 +9,32 @@ class NewsFeedPage extends StatefulWidget {
 }
 
 class _NewsFeedPageState extends State<NewsFeedPage> {
+  List<Container> journeyList = new List();
+
   @override
   Widget build(BuildContext context) {
+//    JourneyMapManger.getInstance().then((JourneyMapManger journeyMapManger){
+//      print(journeyMapManger.jmList);
+//    });
+//
+//    JourneyMapManger.getInstance().then((JourneyMapManger journeyMapManger){
+//      CA.logi(201, journeyMapManger.jmList);
+//      journeyMapManger.jmList.map((JourneyMap journeyMap){
+//        print(journeyMap.name);
+//        return Container(
+//          decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 0.6, color: Colors.black38))),
+//          child: new ListTile(
+//            onTap: (){},
+//            trailing: new FlatButton(
+//                onPressed: (){},
+//                child: Icon(Icons.delete)
+//            ),
+//            title: Text(journeyMap.name, style: TextStyle(fontSize: 15),),
+//          ),
+//        );
+//      }).toList();
+//    });
+
     return Scaffold(
       body: FabCircularMenu(
           child: DefaultTabController(
@@ -29,7 +53,10 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               body: TabBarView(
                 children: [
                   Icon(Icons.directions_car),
-                  Icon(Icons.directions_transit),
+                  ListView(
+                    scrollDirection: Axis.vertical,
+                    children: journeyList
+                  ),
                   new Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
