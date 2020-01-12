@@ -6,12 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:random_string/random_string.dart';
 
+
 import 'support.dart';
 
-class MilestoneListTile{
+class IndexKeeper{
   int i;
 
-  MilestoneListTile(this.i);
+  IndexKeeper(this.i);
 
   GestureTapCallback getI(Function f){
     return ()=>f(i);
@@ -180,22 +181,20 @@ class JourneyMap{
 
   void saveToLocalFile() async {
     if(this.localFile==null){
+
       List<FileSystemEntity> jmFileList = await CacheFile.listOfFiles(
           '__my_journey_map_list__');
+
       List<String> names = jmFileList.map((FileSystemEntity fileSystemEntity)
         =>fileSystemEntity.toString()).toList();
+
       String fileName;
-      CA.logi(1,names);
       do{
         fileName = randomAlphaNumeric(8);
-        CA.logi(2,fileName);
       }while(names.contains(fileName));
       this.localFile = CacheFile(fileName, i:1);
     }
-    CA.logi(4,this.localFile.fileName);
     this.localFile.write(jsonEncode(this.toJson()));
-
-    CA.logi(5,await this.localFile.read());
   }
 }
 
@@ -204,25 +203,33 @@ class JourneyMapManger{
   List<JourneyMap> jmList;
 
   static Future<JourneyMapManger> getInstance() async {
-    if(_instance==null)
-      _instance = JourneyMapManger._();
+    if(_instance!=null && _instance.jmList!=null)
+      return _instance;
 
-    List<FileSystemEntity> jmFileList = await CacheFile.listOfFiles('__my_journey_map_list__');
+    _instance = JourneyMapManger._();
+
+    List<FileSystemEntity> jmFileList = await CacheFile.listOfFiles(
+        '__my_journey_map_list__');
 
     List<JourneyMap> jmList = new List();
 
-    for(FileSystemEntity f in jmFileList){
-      CacheFile cacheFile = CacheFile.fromPath(f.toString(), i:1);
+
+    for (FileSystemEntity f in jmFileList) {
+      CacheFile cacheFile = CacheFile.fromPath(f.path, i:1);
+
       String jsonText = await cacheFile.read();
-      CA.logi(206, jsonText);
       JourneyMap journeyMap = JourneyMap.fromJson(jsonDecode(jsonText));
       journeyMap.localFile = cacheFile;
       jmList.add(journeyMap);
     }
-
     _instance.jmList = jmList;
-
     return _instance;
+  }
+
+  void removeAt(int i) async {
+    CA.logi(0.1, jmList[i].localFile.file.path);
+    await jmList[i].localFile.file.delete();
+    jmList.removeAt(i);
   }
 
   JourneyMapManger._();

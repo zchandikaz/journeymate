@@ -34,6 +34,9 @@ dependencies:
   flutter_cache_manager:
   path_provider:
   random_string:
+  firebase_database:
+  flutter_spinkit:
+  draggable_fab:
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +60,7 @@ flutter:
     - assets/images/back1.jpg
     - assets/images/publish_post.png
     - assets/images/record_journey.png
+    - assets/images/user_profile.png
 
   fonts:
     - family: Roboto

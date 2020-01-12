@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:zoom_widget/zoom_widget.dart';
+import 'package:draggable_fab/draggable_fab.dart';
 
 import 'support.dart';
 import 'classes.dart';
@@ -219,37 +220,40 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
     journeyMap ??= new JourneyMap(name).of(context);
 
     int mCount = 0;
+
+    var appBar = AppBar(
+        title: Text(CS.title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: () {
+              journeyMap.saveToLocalFile();
+              CA.alert(context, "Journey map saved.");
+            },
+          ),
+          // action button
+          IconButton(
+            icon: Icon(Icons.cancel),
+            onPressed: _cancel,
+          ),
+
+          PopupMenuButton<String>(
+            onSelected: _select,
+            itemBuilder: (BuildContext context) {
+              return ['Settings'].map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ]
+    );
+
     return Scaffold(
       resizeToAvoidBottomPadding: false,
-      appBar: AppBar(
-        title: Text(CS.title),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.save),
-              onPressed: () {
-                journeyMap.saveToLocalFile();
-                CA.alert(context, "Journey map saved.");
-              },
-            ),
-            // action button
-            IconButton(
-              icon: Icon(Icons.cancel),
-              onPressed: _cancel,
-            ),
-
-            PopupMenuButton<String>(
-              onSelected: _select,
-              itemBuilder: (BuildContext context) {
-                return ['Settings'].map((String choice) {
-                  return PopupMenuItem<String>(
-                    value: choice,
-                    child: Text(choice),
-                  );
-                }).toList();
-              },
-            ),
-          ]
-      ),
+      appBar: appBar,
       body: Column(
         children: <Widget>[
           Container(
@@ -272,7 +276,7 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
                 return Container(
                   decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 0.6, color: Colors.black38))),
                   child: new ListTile(
-                    onTap: MilestoneListTile(mCount).getI((i){
+                    onTap: IndexKeeper(mCount).getI((i){
                       CA.navigate(context, Pages.editMilestone(journeyMap.milestones[i].title, journeyMap.milestones[i].note.text)).then((v){
                         if(v!=null)
                           setState((){
@@ -284,7 +288,7 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
                       });
                     }),
                     trailing: new FlatButton(
-                        onPressed: MilestoneListTile(mCount).getI((i){
+                        onPressed: IndexKeeper(mCount).getI((i){
                           setState(() {
                             journeyMap.milestones.removeAt(i);
                           });
@@ -298,13 +302,15 @@ class _RecordJourneyPageState extends State<RecordJourneyPage> {
               }).toList(),
             ),
           ),
-
-        ],  
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _recordMilestone,
-        tooltip: 'Milestone',
-        child: Icon(Icons.add),
+      floatingActionButton: DraggableFab(
+        child: FloatingActionButton(
+          onPressed: _recordMilestone,
+          tooltip: 'Milestone',
+          child: Icon(Icons.add),
+          backgroundColor: CS.bgColor1,
+        ),
       ),
     );
   }

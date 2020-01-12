@@ -4,12 +4,18 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:journeymate/classes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'LoginPage.dart';
 import 'NewsFeedPage.dart';
 import 'RecordJourneyPage.dart';
+import 'ViewJourney.dart';
+
+final dbRef = FirebaseDatabase.instance.reference();
 
 // Common Settings
 class CS{
@@ -27,6 +33,7 @@ class Pages {
   //static RecordJourneyPage continueRecordJourney() => RecordJourneyPage.continueJourney();
   static AddMilestonePage get addMilestone => AddMilestonePage();
   static AddMilestonePage editMilestone(title, note) => AddMilestonePage.edit(title, note);
+  static ViewJourneyPage viewJourneyPage(JourneyMap journeyMap) => ViewJourneyPage(journeyMap);
 }
 
 // Common Actions
@@ -118,6 +125,13 @@ class CA{
   static double convertRange(double value, double fromMin, double fromMax, double toMin, double toMax){
     return (fromMin==fromMax)?((toMin+toMax)/2):((value-fromMin)/(fromMax-fromMin).abs()*(toMax-toMin).abs() + toMin);
   }
+
+  static get waitSpin{
+    return SpinKitDoubleBounce( //Ripple
+      color: CS.bgColor1,
+      size: 50.0,
+    );
+  }
 }
 
 class CacheFile{
@@ -132,6 +146,7 @@ class CacheFile{
     this.fileName = fileName;
     this._fileLocationIndex = i;
   }
+
   CacheFile.fromPath(path, {i=0}){
     this.fileName = path?.split("/")?.last;
     this._fileLocationIndex = i;
@@ -153,7 +168,6 @@ class CacheFile{
 
   Future<File> write(String data) async {
     file ??= File(await path);
-    CA.logi(101,file.path);
     return file.writeAsString(data);
   }
 
@@ -163,14 +177,13 @@ class CacheFile{
       String contents = await file.readAsString();
       return contents;
     } catch (e) {
-      CA.log('CacheFile Read Error');
+      CA.log('CacheFile[${ this.file.path }] Read Error [${ e.toString() }]');
       return null;
     }
   }
 
   static Future<List<FileSystemEntity>> listOfFiles(path) async {
     Directory _dir = Directory("${await CacheFile._localPath}/$path/");
-    CA.log("${await CacheFile._localPath}/$path/");
     if(!(await _dir.exists())){
       _dir.create(recursive: true);
       return List();
