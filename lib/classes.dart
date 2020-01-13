@@ -310,4 +310,11 @@ class DateTimeJE{
   DateTimeJE(this.dateTime);
 
   static DateTimeJE get now => DateTimeJE(DateTime.now());
+
+  @override
+  String toString() {
+    return "$year-${10>month?'0':''}$month-${10>day?'0':''}$day ${10>hour?'0':''}$hour:${10>minute?'0':''}$minute:${10>second?'0':''}$second";
+  }
+
+
 }

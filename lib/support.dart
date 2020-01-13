@@ -33,7 +33,7 @@ class Pages {
   //static RecordJourneyPage continueRecordJourney() => RecordJourneyPage.continueJourney();
   static AddMilestonePage get addMilestone => AddMilestonePage();
   static AddMilestonePage editMilestone(title, note) => AddMilestonePage.edit(title, note);
-  static ViewJourneyPage viewJourneyPage(JourneyMap journeyMap) => ViewJourneyPage(journeyMap);
+  static ViewJourneyDetailsPage viewJourneyDetailsPage(JourneyMap journeyMap) => ViewJourneyDetailsPage(journeyMap);
 }
 
 // Common Actions

@@ -153,7 +153,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 0.6, color: Colors.black38))),
           child: new ListTile(
             onTap: IndexKeeper(jCount++).getI((i){
-              CA.navigate(context, Pages.viewJourneyPage(journeyMapManger.jmList[i]));
+              CA.navigate(context, Pages.viewJourneyDetailsPage(journeyMapManger.jmList[i]));
             }),
             title: Text(m.name, style: TextStyle(fontSize: 15),),
           ),
